@@ -16,14 +16,14 @@ interface ChatFile {
 }
 
 interface ChatInterfaceProps {
-  selectedModel: string;
+  selectedModel?: string;
 }
 
 const MAX_TEXTAREA_ROWS = 8;
 const APPROX_LINE_HEIGHT_PX = 20;
 const APPROX_TOKEN_LIMIT_CHARS = 700000;
 
-export function ChatInterface({ selectedModel }: ChatInterfaceProps) {
+export function ChatInterface({ selectedModel: modelFromProps }: ChatInterfaceProps) {
   const { currentChatId, loadChat, updateChatMessages, createNewChat, updateChatTitle } = useChat();
 
   useEffect(() => {
@@ -37,6 +37,8 @@ export function ChatInterface({ selectedModel }: ChatInterfaceProps) {
   const viewportScrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const effectiveSelectedModel = modelFromProps || "gpt-4.1";
 
   const displayedMessages: ChatMessage[] = currentChatId ? loadChat(currentChatId)?.messages || [] : [];
 
@@ -152,7 +154,7 @@ export function ChatInterface({ selectedModel }: ChatInterfaceProps) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: messagesForApi, model: selectedModel }),
+        body: JSON.stringify({ messages: messagesForApi, model: effectiveSelectedModel }),
       });
 
       if (!response.ok) {
@@ -192,7 +194,7 @@ export function ChatInterface({ selectedModel }: ChatInterfaceProps) {
                 body: JSON.stringify({
                   firstUserMessageContent: newUserMessage.content,
                   firstAssistantMessageContent: newAssistantMessage.content,
-                  model: selectedModel,
+                  model: effectiveSelectedModel,
                 }),
               });
               if (titleResponse.ok) {
